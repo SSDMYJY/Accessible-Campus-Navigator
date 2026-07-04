@@ -26,7 +26,7 @@
  *   dropped connection never strands a user mid-navigation.
  */
 
-const CACHE = 'acn-v1'
+const CACHE = 'acn-v2'
 
 // App shell — URLs whose paths are stable across builds.
 // Note: `/index.html` is the Vite entry; in dev it is served as-is, in the

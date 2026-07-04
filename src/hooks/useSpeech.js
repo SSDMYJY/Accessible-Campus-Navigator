@@ -21,13 +21,31 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-export function useSpeech() {
+/**
+ * @param {object} [opts]
+ * @param {number} [opts.rate=0.95]    Speech rate. Web Speech API supports 0.1–10,
+ *                                    but values outside ~0.5–2.0 are unintelligible.
+ * @param {number} [opts.pitch=1]     Speech pitch, 0–2.
+ */
+export function useSpeech({ rate, pitch } = {}) {
   const supported =
     typeof window !== 'undefined' && 'speechSynthesis' in window
 
   const [speaking, setSpeaking] = useState(false)
   // Keep a ref to the current utterance so we can detach handlers on unmount.
   const utteranceRef = useRef(null)
+
+  // Read the latest rate/pitch on each speak() call so a settings change in
+  // the middle of a session takes effect on the very next utterance without
+  // needing to recreate the hook or the consumers.
+  const rateRef = useRef(rate)
+  const pitchRef = useRef(pitch)
+  useEffect(() => {
+    rateRef.current = rate
+  }, [rate])
+  useEffect(() => {
+    pitchRef.current = pitch
+  }, [pitch])
 
   // Cancel any pending speech when the component using the hook unmounts,
   // otherwise the browser keeps talking after the user navigated away.
@@ -46,8 +64,8 @@ export function useSpeech() {
       window.speechSynthesis.cancel()
 
       const utterance = new SpeechSynthesisUtterance(text)
-      utterance.rate = 0.95
-      utterance.pitch = 1
+      utterance.rate = typeof rateRef.current === 'number' ? rateRef.current : 0.95
+      utterance.pitch = typeof pitchRef.current === 'number' ? pitchRef.current : 1
       utterance.volume = 1
       utterance.lang = 'zh-CN'
 

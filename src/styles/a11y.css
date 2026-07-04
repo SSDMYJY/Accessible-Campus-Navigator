@@ -671,3 +671,427 @@ a.touch-target {
   outline: 3px solid #ffd60a !important;
   outline-offset: 4px !important;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   13. Accessibility score dots
+   A 1–5 dot rating. Filled dots use forest green (the cartographic "step-free
+   positive" color); empty dots use hairline. The rating is decorative — the
+   aria-label on the parent <span role="img"> is the authoritative AT source.
+   ───────────────────────────────────────────────────────────────────────── */
+.score-dot {
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  border: 1px solid var(--ink);
+  vertical-align: middle;
+}
+.score-dot--filled {
+  background: var(--forest);
+  border-color: var(--forest);
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.18);
+}
+.score-dot--empty {
+  background: transparent;
+  border-color: var(--hairline);
+}
+/* High-contrast: filled = yellow, empty = white outline, no shadow. */
+.high-contrast .score-dot {
+  border-color: #fff !important;
+  box-shadow: none !important;
+}
+.high-contrast .score-dot--filled {
+  background: #ffd60a !important;
+  border-color: #fff !important;
+}
+.high-contrast .score-dot--empty {
+  background: transparent !important;
+  border-color: #fff !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   14. Recent searches chips
+   Compact "transit tag" chips for one-tap retry of recent queries.
+   ───────────────────────────────────────────────────────────────────────── */
+.recent-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  box-shadow: 2px 2px 0 var(--rust);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+  max-width: 22rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recent-chip:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--rust);
+  background: var(--paper-deep);
+}
+.recent-chip:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--rust);
+}
+.high-contrast .recent-chip {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+  box-shadow: 2px 2px 0 #ffd60a !important;
+}
+.high-contrast .recent-chip:hover {
+  box-shadow: 3px 3px 0 #ffd60a !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   15. Guided navigator overlay (native <dialog>)
+   The overlay takes over the viewport. We use the native <dialog> element so
+   we get focus trap + ESC-to-close + top layer rendering for free.
+   ───────────────────────────────────────────────────────────────────────── */
+.guided-navigator {
+  /* Reset browser-default dialog styling */
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--paper);
+  max-width: min(92vw, 38rem);
+  width: 92vw;
+  margin: auto;
+}
+.guided-navigator::backdrop {
+  background: rgba(15, 20, 30, 0.78);
+  backdrop-filter: blur(2px);
+}
+.guided-navigator__inner {
+  background: var(--ink);
+  color: var(--paper);
+  border: 2px solid var(--paper);
+  box-shadow:
+    6px 6px 0 var(--rust),
+    12px 12px 0 rgba(0, 0, 0, 0.35);
+  padding: 1.25rem 1.5rem 1.5rem;
+  position: relative;
+}
+.guided-navigator__header {
+  position: relative;
+  padding-right: 3rem; /* leave room for the close button */
+  border-bottom: 1px solid rgba(244, 237, 224, 0.18);
+  padding-bottom: 0.85rem;
+}
+.guided-navigator__close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--paper);
+  border: 1.5px solid var(--paper);
+  border-radius: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.guided-navigator__close:hover {
+  background: var(--rust);
+  color: var(--paper);
+  border-color: var(--rust);
+}
+.guided-navigator__progress {
+  margin-top: 0.85rem;
+  height: 6px;
+  background: rgba(244, 237, 224, 0.15);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.guided-navigator__progress-fill {
+  height: 100%;
+  background: var(--rust);
+  border-radius: 9999px;
+  transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.guided-navigator__step {
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  background: rgba(244, 237, 224, 0.06);
+  border: 1px solid rgba(244, 237, 224, 0.18);
+  border-radius: 2px;
+  outline: none; /* focus ring handled by :focus-visible globally */
+}
+.guided-navigator__step:focus-visible {
+  outline: 3px solid var(--rust);
+  outline-offset: 2px;
+}
+.guided-navigator__safety {
+  margin-top: 0.85rem;
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.6rem 0.75rem;
+  background: rgba(184, 65, 42, 0.18);
+  border-left: 3px solid var(--rust);
+  font-family: 'Newsreader', serif;
+  font-size: 0.875rem;
+}
+.guided-navigator__controls {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+/* Prev/Next/Replay buttons stretch to fill row evenly on small screens. */
+.guided-navigator__btn {
+  flex: 1 1 auto;
+  justify-content: center;
+  min-width: 5rem;
+}
+.guided-navigator__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.guided-navigator__auto-toggle {
+  margin-top: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  user-select: none;
+}
+.guided-navigator__auto-toggle input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--rust);
+  cursor: pointer;
+}
+
+/* High-contrast overrides for the guided overlay. */
+.high-contrast .guided-navigator__inner {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+  box-shadow: none !important;
+}
+.high-contrast .guided-navigator::backdrop {
+  background: #000 !important;
+  opacity: 0.92 !important;
+}
+.high-contrast .guided-navigator__close {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+.high-contrast .guided-navigator__close:hover {
+  background: #ffd60a !important;
+  color: #000 !important;
+  border-color: #fff !important;
+}
+.high-contrast .guided-navigator__step {
+  background: #000 !important;
+  border-color: #fff !important;
+}
+.high-contrast .guided-navigator__progress,
+.high-contrast .guided-navigator__progress-fill {
+  background: #fff !important;
+}
+.high-contrast .guided-navigator__progress-fill {
+  background: #ffd60a !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   16. Swap button (origin ↔ destination quick swap)
+   A small ghost button — visually secondary to the primary "查找无障碍路线"
+   CTA so it doesn't compete for attention, but still meets 48dp min target.
+   ───────────────────────────────────────────────────────────────────────── */
+.swap-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1.5px dashed var(--hairline);
+  border-radius: 2px;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.swap-button:hover:not(:disabled) {
+  color: var(--rust);
+  border-color: var(--rust);
+  border-style: solid;
+  background: rgba(184, 65, 42, 0.06);
+}
+.swap-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* The arrow glyph animates 180° on hover for a delightful "swap" affordance. */
+.swap-button:hover:not(:disabled) span[aria-hidden] {
+  display: inline-block;
+  transform: rotate(180deg);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.swap-button span[aria-hidden] {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .swap-button:hover:not(:disabled) span[aria-hidden],
+  .swap-button span[aria-hidden] {
+    transform: none;
+    transition: none;
+  }
+}
+.high-contrast .swap-button {
+  color: #fff !important;
+  background: #000 !important;
+  border: 2px solid #fff !important;
+}
+.high-contrast .swap-button:hover:not(:disabled) {
+  color: #ffd60a !important;
+  border-color: #ffd60a !important;
+  background: #000 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   17. Settings popover (TTS rate / pitch / auto-announce)
+   Uses the native `popover` attribute where supported (top layer + light
+   dismiss + ESC). Falls back to a positioned panel with manual outside-click
+   handling (see SettingsPopover.jsx).
+   ───────────────────────────────────────────────────────────────────────── */
+.settings-popover-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+.settings-popover {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 60;
+  width: min(92vw, 22rem);
+  padding: 1rem 1.1rem 1.1rem;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  box-shadow:
+    4px 4px 0 var(--rust),
+    8px 8px 0 var(--hairline);
+  font-family: 'Newsreader', serif;
+  color: var(--ink);
+}
+/* When the native popover API takes over, it renders in the top layer; the
+   absolute positioning above becomes a no-op. We still want the visual style. */
+.settings-popover[hidden] {
+  display: none;
+}
+.settings-popover__close {
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.settings-popover__close:hover {
+  background: var(--rust);
+  color: var(--paper);
+  border-color: var(--rust);
+}
+.settings-popover__row {
+  padding: 0.65rem 0;
+  border-bottom: 1px dashed var(--hairline);
+}
+.settings-popover__row:last-of-type {
+  border-bottom: 0;
+}
+.settings-popover__label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--ink);
+  margin-bottom: 0.45rem;
+}
+.settings-popover__range {
+  width: 100%;
+  accent-color: var(--rust);
+  cursor: pointer;
+  min-height: 48px; /* keep 48dp target on the slider track */
+}
+.settings-popover__desc {
+  font-family: 'Newsreader', serif;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+.settings-popover__check-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  cursor: pointer;
+  user-select: none;
+}
+.settings-popover__checkbox {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--rust);
+  cursor: pointer;
+}
+.settings-popover__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--hairline);
+}
+.settings-popover__actions .badge-button {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+/* High-contrast overrides. */
+.high-contrast .settings-popover {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+  box-shadow: none !important;
+}
+.high-contrast .settings-popover__close {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+.high-contrast .settings-popover__close:hover {
+  background: #ffd60a !important;
+  color: #000 !important;
+  border-color: #fff !important;
+}
+.high-contrast .settings-popover__range,
+.high-contrast .settings-popover__checkbox {
+  accent-color: #ffd60a !important;
+}
