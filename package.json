@@ -1,0 +1,25 @@
+{
+  "name": "accessible-campus-navigator",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A PWA that helps users with visual and mobility impairments find accessible campus routes.",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "deploy": "vite build && wrangler deploy",
+    "deploy:dry": "vite build && wrangler deploy --dry-run",
+    "cf:dev": "vite build && wrangler dev"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "playwright": "^1.61.1",
+    "vite": "^5.4.0",
+    "wrangler": "^3.60.0"
+  }
+}

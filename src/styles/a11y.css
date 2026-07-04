@@ -1,0 +1,673 @@
+/*
+ * a11y.css — "Editorial Cartographer" theme + accessibility layer.
+ *
+ * Loaded AFTER the Tailwind CDN so these rules win the cascade where needed.
+ *
+ * SECTIONS
+ *   1. Theme tokens (CSS variables)
+ *   2. Base typography & paper texture
+ *   3. Skip link (a11y)
+ *   4. Focus visibility (a11y)
+ *   5. Touch targets — 48dp minimum (a11y)
+ *   6. Visually hidden (a11y)
+ *   7. 200% text scaling + responsive guards (a11y)
+ *   8. Reduced motion (a11y)
+ *   9. Cartographic components (topographic bg, compass, route-line, stamps)
+ *   10. Transit-ticket route cards (perforated edge, etc.)
+ *   11. Animations (staggered reveal, compass rotation, stamp press)
+ *   12. High-Contrast mode overrides (a11y)
+ */
+
+/* ─────────────────────────────────────────────────────────────────────────
+   1. Theme tokens
+   Centralized so the high-contrast override block can swap them wholesale.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --paper:        #f4ede0;
+  --paper-deep:   #ebe1cf;
+  --ink:          #1a2332;
+  --ink-soft:     #3a4356;
+  --ink-muted:    #6b5d4f;
+  --rust:         #b8412a;
+  --rust-deep:    #8f2f1f;
+  --forest:       #2d5a3d;
+  --forest-soft:  #4a7558;
+  --hairline:     #d4c9b5;
+  --stamp-red:    #a8332a;
+  --accent-gold:  #c69a3a;  /* faded gold for decorative rules */
+
+  --focus-ring:   #b8412a;  /* rust — visible on cream AND on ink */
+  --focus-offset: 3px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   2. Base typography & paper texture
+   The body gets a layered paper texture: a subtle topographic SVG contour
+   pattern (data URI) over the warm cream base, plus a faint grain via
+   radial-gradient stippling. The texture is decorative — `aria-hidden` is
+   not needed because it is pure CSS background, invisible to AT.
+   ───────────────────────────────────────────────────────────────────────── */
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image:
+    /* topographic contour curves — faint, like a vintage map */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><g fill='none' stroke='%23d4c9b5' stroke-width='0.6' opacity='0.35'><path d='M-50 120 Q 150 60 320 140 T 660 120'/><path d='M-50 200 Q 180 140 340 220 T 660 200'/><path d='M-50 300 Q 160 240 330 320 T 660 300'/><path d='M-50 400 Q 200 340 350 420 T 660 400'/><path d='M-50 500 Q 170 440 340 520 T 660 500'/><path d='M-50 60 Q 200 0 360 80 T 660 60'/></g></svg>"),
+    /* paper grain stipple */
+    radial-gradient(circle at 20% 30%, rgba(107, 93, 79, 0.04) 0px, transparent 1px),
+    radial-gradient(circle at 70% 60%, rgba(107, 93, 79, 0.03) 0px, transparent 1px),
+    radial-gradient(circle at 40% 80%, rgba(107, 93, 79, 0.04) 0px, transparent 1px);
+  background-size: 600px 600px, 80px 80px, 100px 100px, 120px 120px;
+  color: var(--ink);
+  font-family: 'Newsreader', Georgia, serif;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'onum' 1; /* oldstyle numerals for body */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings use Fraunces with its display optical size for that
+   hand-drawn map-lettering character. */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-feature-settings: 'ss01' 1; /* stylistic set for extra character */
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+/* Numerics/distances use the mono — feels like map coordinate notation. */
+.font-mono, .mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-feature-settings: 'tnum' 1; /* tabular numbers for aligned distances */
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   3. Skip link
+   Off-screen until focused. Rust on cream = max contrast, and matches the
+   cartographic accent so it feels intentional rather than a11y-afterthought.
+   ───────────────────────────────────────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -4rem;
+  z-index: 100;
+  background: var(--rust);
+  color: var(--paper);
+  padding: 0.75rem 1.25rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border: 2px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: top 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.skip-link:focus {
+  top: 0.75rem;
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   4. Focus visibility
+   :focus-visible is the modern, keyboard-only focus indicator. Rust outline
+   works on both cream paper and ink header surfaces.
+   ───────────────────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: 2px;
+}
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+/* Never let outline:none utilities hide keyboard focus. */
+*:focus-visible {
+  outline: 3px solid var(--focus-ring) !important;
+  outline-offset: var(--focus-offset) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   5. Touch targets — WCAG 2.5.8 (AA) Target Size (Minimum)
+   48x48 CSS px ≈ 3rem. Min-height + min-width so text can grow.
+   ───────────────────────────────────────────────────────────────────────── */
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+button:not([data-small]),
+select:not([data-small]),
+a.touch-target {
+  min-height: 48px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   6. Visually hidden
+   Removes element from visual layout, keeps it in the accessibility tree.
+   Used for aria-live regions and screen-reader-only labels.
+   ───────────────────────────────────────────────────────────────────────── */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   7. 200% text scaling
+   rem-based sizing scales uniformly with browser zoom. Narrow-viewport
+   guards prevent horizontal scroll when text is large.
+   ───────────────────────────────────────────────────────────────────────── */
+@media screen and (max-width: 360px) {
+  body {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   8. Reduced motion
+   Respect OS preference. Catches compass rotation, staggered reveals, etc.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   9. Cartographic components
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Hairline rule used between editorial sections — like a map border. */
+.rule-cartographic {
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    var(--hairline) 15%,
+    var(--hairline) 85%,
+    transparent
+  );
+}
+
+/* The "station code" badge — a small monospaced label that feels like a
+   transit station abbreviation (e.g. "ACN · 01"). */
+.station-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* Compass rose — decorative SVG in App.jsx. Slow gentle rotation. */
+.compass-rose {
+  animation: compass-drift 90s linear infinite;
+  transform-origin: center;
+}
+@keyframes compass-drift {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* The dashed route line that connects numbered step stamps. */
+.route-line {
+  stroke: var(--rust);
+  stroke-width: 2;
+  stroke-dasharray: 4 5;
+  fill: none;
+}
+
+/* Numbered step "stamp" — a circular badge like a transit map stop. */
+.step-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 0.875rem;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   10. Transit-ticket route cards
+   The route <article> looks like a vintage transit ticket: cream paper,
+   double border, a perforated divider between the header summary and the
+   step-by-step directions, and a torn corner feel via box-shadow.
+   ───────────────────────────────────────────────────────────────────────── */
+.route-ticket {
+  position: relative;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  box-shadow:
+    4px 4px 0 var(--ink),
+    /* extra paper-depth layer */
+    8px 8px 0 var(--hairline);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.route-ticket:hover {
+  transform: translate(-2px, -2px);
+  box-shadow:
+    6px 6px 0 var(--ink),
+    10px 10px 0 var(--hairline);
+}
+
+/* When a route is "selected", a rotated red stamp seal appears in the corner,
+   like a passport validation stamp. Purely decorative — the actual state is
+   also conveyed via aria-pressed and visible button text. */
+.route-ticket[data-selected="true"] {
+  border-color: var(--rust);
+  box-shadow:
+    4px 4px 0 var(--rust),
+    8px 8px 0 var(--hairline);
+}
+.selected-seal {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid var(--stamp-red);
+  border-radius: 9999px;
+  color: var(--stamp-red);
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transform: rotate(-12deg);
+  opacity: 0.92;
+  pointer-events: none;
+  background: rgba(244, 237, 224, 0.6);
+  /* Slight ink-bleed texture */
+  box-shadow: inset 0 0 0 1px var(--stamp-red);
+}
+.selected-seal::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 1px dashed var(--stamp-red);
+  border-radius: 9999px;
+  opacity: 0.5;
+}
+
+/* Perforated divider between ticket header and directions. Built from a row
+   of small circles cut out of a solid line, using a mask. */
+.perforation {
+  position: relative;
+  height: 1.5rem;
+  margin: 0.5rem -0.5rem;
+  background-image: linear-gradient(to right, transparent 6px, var(--ink) 6px, var(--ink) calc(100% - 6px), transparent calc(100% - 6px));
+  background-size: 100% 1.5px;
+  background-position: center;
+  background-repeat: no-repeat;
+  -webkit-mask-image: radial-gradient(circle 5px at 5px center, transparent 4px, #000 4.5px);
+          mask-image: radial-gradient(circle 5px at 5px center, transparent 4px, #000 4.5px);
+  -webkit-mask-size: 14px 100%;
+          mask-size: 14px 100%;
+  -webkit-mask-repeat: repeat-x;
+          mask-repeat: repeat-x;
+}
+
+/* Accessibility-feature badge — looks like a small printed stamp/tag. */
+.feature-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--forest);
+  background: transparent;
+  border: 1px solid var(--forest);
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+.feature-stamp::before {
+  content: "✓";
+  font-weight: 700;
+}
+
+/* Header control buttons — vintage transit-badge style: cream on ink with
+   a rust press shadow. */
+.badge-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1.5px solid var(--paper);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+}
+.badge-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4);
+}
+.badge-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
+}
+/* The primary CTA (submit / select) uses rust. */
+.badge-button--primary {
+  background: var(--rust);
+  color: var(--paper);
+  border-color: var(--rust);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.badge-button--primary:hover {
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.badge-button--primary:active {
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+/* Form "ticket window" panel — the form itself looks like a stamped form. */
+.ticket-window {
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--rust), 10px 10px 0 var(--hairline);
+}
+
+/* Selects styled as ink-on-cream form fields with a rust focus ring. */
+.field-select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  padding: 0.625rem 2.5rem 0.625rem 0.75rem;
+  font-family: 'Newsreader', serif;
+  font-size: 1.0625rem;
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='none' stroke='%231a2332' stroke-width='1.5' d='M1 1 L6 6 L11 1'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  min-height: 48px;
+}
+.field-select:focus-visible {
+  outline: 3px solid var(--rust);
+  outline-offset: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   11. Animations — staggered reveal on route cards
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Voice-input listening pulse — a soft rust halo that breathes around the mic
+   button while the recognizer is active. Disabled under reduced-motion. */
+@keyframes mic-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(184, 65, 42, 0.55); }
+  70%  { box-shadow: 0 0 0 18px rgba(184, 65, 42, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(184, 65, 42, 0); }
+}
+.mic-button--listening {
+  animation: mic-pulse 1.4s ease-out infinite;
+}
+
+/* Sound-wave bars inside the mic badge — three bars that animate height in
+   sequence to give visual feedback that the mic is "hearing". */
+.wave-bar {
+  display: inline-block;
+  width: 3px;
+  background: currentColor;
+  border-radius: 2px;
+  animation: wave-bar 0.9s ease-in-out infinite;
+}
+.wave-bar:nth-child(1) { height: 12px; animation-delay: 0s; }
+.wave-bar:nth-child(2) { height: 20px; animation-delay: 0.15s; }
+.wave-bar:nth-child(3) { height: 12px; animation-delay: 0.30s; }
+@keyframes wave-bar {
+  0%, 100% { transform: scaleY(0.4); }
+  50%      { transform: scaleY(1);   }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mic-button--listening { animation: none; }
+  .wave-bar { animation: none; }
+}
+
+/* Voice transcript text — italic Newsreader for a "quoted speech" feel. */
+.voice-transcript {
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 1.0625rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+@keyframes ticket-in {
+  0%   { opacity: 0; transform: translateY(12px) rotate(-0.4deg); }
+  100% { opacity: 1; transform: translateY(0)   rotate(0); }
+}
+.route-ticket {
+  animation: ticket-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+/* Stagger: each subsequent card animates 90ms later. Cap at 6 cards. */
+.route-ticket:nth-child(1) { animation-delay: 0.05s; }
+.route-ticket:nth-child(2) { animation-delay: 0.14s; }
+.route-ticket:nth-child(3) { animation-delay: 0.23s; }
+.route-ticket:nth-child(4) { animation-delay: 0.32s; }
+.route-ticket:nth-child(5) { animation-delay: 0.41s; }
+.route-ticket:nth-child(6) { animation-delay: 0.50s; }
+
+@keyframes stamp-press {
+  0%   { transform: rotate(-12deg) scale(0.6); opacity: 0; }
+  60%  { transform: rotate(-8deg)  scale(1.12); opacity: 1; }
+  100% { transform: rotate(-12deg) scale(1); opacity: 0.92; }
+}
+.route-ticket[data-selected="true"] .selected-seal {
+  animation: stamp-press 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Hero title fade-in on load. */
+@keyframes title-in {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.title-in { animation: title-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.title-in-delay-1 { animation-delay: 0.15s; }
+.title-in-delay-2 { animation-delay: 0.30s; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   12. High-Contrast mode overrides
+   Triggered by the `high-contrast` class on <html> (see useHighContrast.js).
+   Swaps to pure black/white with thick borders + yellow accent + cyan links.
+   This OVERRIDES the cartographic palette entirely — legibility wins over
+   aesthetics for users who need high contrast.
+   ───────────────────────────────────────────────────────────────────────── */
+.high-contrast {
+  --paper:      #000000;
+  --paper-deep: #000000;
+  --ink:        #ffffff;
+  --ink-soft:   #ffffff;
+  --ink-muted:  #ffffff;
+  --rust:       #ffd60a;
+  --rust-deep:  #ffd60a;
+  --forest:     #ffffff;
+  --forest-soft:#ffffff;
+  --hairline:   #ffffff;
+  --stamp-red:  #ffd60a;
+  --focus-ring: #ffd60a;
+  --accent-gold:#ffd60a;
+
+  background: #000 !important;
+  background-image: none !important;
+  color: #fff !important;
+}
+.high-contrast body {
+  background: #000 !important;
+  background-image: none !important;
+  color: #fff !important;
+  font-family: 'Newsreader', Georgia, serif !important;
+}
+.high-contrast h1,
+.high-contrast h2,
+.high-contrast h3,
+.high-contrast h4 {
+  color: #fff !important;
+}
+/* All text colors that referenced ink/rust/forest collapse to white/yellow. */
+.high-contrast .text-ink,
+.high-contrast .text-ink-soft,
+.high-contrast .text-ink-muted,
+.high-contrast .text-forest,
+.high-contrast .text-forest-soft {
+  color: #fff !important;
+}
+.high-contrast .text-rust,
+.high-contrast .text-rust-deep,
+.high-contrast .text-stamp {
+  color: #ffd60a !important;
+}
+/* Backgrounds collapse to black. */
+.high-contrast .bg-paper,
+.high-contrast .bg-paper-deep,
+.high-contrast .bg-ink,
+.high-contrast .ticket-window,
+.high-contrast .route-ticket,
+.high-contrast .field-select {
+  background: #000 !important;
+  color: #fff !important;
+}
+/* Ink header becomes black with yellow bottom rule. */
+.high-contrast header,
+.high-contrast .bg-ink {
+  background: #000 !important;
+  color: #fff !important;
+  border-bottom: 3px solid #ffd60a !important;
+}
+/* All borders become 2px solid white so every edge is unmistakable. */
+.high-contrast .route-ticket,
+.high-contrast .ticket-window,
+.high-contrast .field-select,
+.high-contrast .badge-button,
+.high-contrast .feature-stamp,
+.high-contrast .step-stamp,
+.high-contrast article,
+.high-contrast button,
+.high-contrast select,
+.high-contrast a,
+.high-contrast .border,
+.high-contrast .border-ink,
+.high-contrast .border-rust,
+.high-contrast .border-forest,
+.high-contrast .border-hairline {
+  border-color: #fff !important;
+}
+.high-contrast .route-ticket,
+.high-contrast .ticket-window {
+  border-width: 2px !important;
+  box-shadow: none !important;
+}
+/* Remove decorative shadows (they read as noise in HC). */
+.high-contrast .badge-button,
+.high-contrast .step-stamp,
+.high-contrast .route-ticket {
+  box-shadow: none !important;
+}
+/* Primary CTA: yellow bg, black text. */
+.high-contrast .badge-button--primary,
+.high-contrast button.bg-rust,
+.high-contrast .bg-rust {
+  background: #ffd60a !important;
+  color: #000 !important;
+  border: 2px solid #fff !important;
+}
+/* Selected ticket seal becomes yellow. */
+.high-contrast .selected-seal {
+  color: #ffd60a !important;
+  border-color: #ffd60a !important;
+  background: #000 !important;
+}
+.high-contrast .selected-seal::before {
+  border-color: #ffd60a !important;
+}
+/* Links become cyan. */
+.high-contrast a:not(.badge-button):not(.bg-rust) {
+  color: #00e5ff !important;
+  text-decoration: underline;
+}
+/* Hairlines / perforations become solid white. */
+.high-contrast .rule-cartographic,
+.high-contrast .perforation {
+  background: #fff !important;
+  -webkit-mask: none !important;
+          mask: none !important;
+  height: 2px !important;
+}
+/* Feature stamps: invert to white text on black with white border. */
+.high-contrast .feature-stamp {
+  color: #fff !important;
+  border-color: #fff !important;
+  background: #000 !important;
+}
+/* Muted helper text gets full opacity. */
+.high-contrast .text-ink-muted,
+.high-contrast .opacity-70,
+.high-contrast .opacity-60 {
+  opacity: 1 !important;
+  color: #fff !important;
+}
+/* Station codes and small labels: full white. */
+.high-contrast .station-code {
+  color: #fff !important;
+}
+/* Focus ring becomes yellow on black. */
+.high-contrast :focus-visible {
+  outline: 3px solid #ffd60a !important;
+  outline-offset: 3px !important;
+}
+/* Hide the compass rose and other purely decorative SVGs in HC. */
+.high-contrast .compass-rose,
+.high-contrast .decorative-only {
+  display: none !important;
+}
+/* Voice mic pulse — replace the rust halo with a yellow ring in HC. */
+.high-contrast .mic-button--listening {
+  animation: none !important;
+  outline: 3px solid #ffd60a !important;
+  outline-offset: 4px !important;
+}

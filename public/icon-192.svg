@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  icon-192.svg — maskable PWA icon, 192x192.
+  Design rationale: dark blue background (#0b3d91, brand color) with a
+  high-contrast yellow location pin + ramp arrow (#ffd60a). The full-bleed
+  background fills the maskable safe zone so Android adaptive icons crop cleanly.
+  The pin+arrow glyph communicates "wayfinding" without text (legible at small
+  sizes and to users with low vision).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="Accessible Campus Navigator icon">
+  <rect width="192" height="192" rx="32" fill="#0b3d91" />
+  <!-- Location pin -->
+  <path d="M96 36 C70 36 50 56 50 82 C50 116 96 156 96 156 C96 156 142 116 142 82 C142 56 122 36 96 36 Z"
+        fill="#ffd60a" stroke="#082a66" stroke-width="4" />
+  <circle cx="96" cy="82" r="16" fill="#0b3d91" />
+  <!-- Ramp arrow (accessibility cue) -->
+  <path d="M70 130 L130 150 L122 158 L62 138 Z" fill="#00e5ff" />
+</svg>

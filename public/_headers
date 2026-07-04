@@ -1,0 +1,26 @@
+# _headers — Cloudflare 静态资源响应头
+#
+# 此文件会被 Vite 复制到 dist/_headers,Workers Static Assets 会读取它
+# 并为匹配的路径附加响应头。语法与 Cloudflare Pages 一致。
+#
+# PWA 关键资源 MIME 与缓存策略
+
+# manifest 显式 MIME → Chrome 安装提示更可靠(部分 CDN 默认 application/json)
+/manifest.json
+  Content-Type: application/manifest+json
+  Cache-Control: public, max-age=0, must-revalidate
+
+# service-worker.js 不缓存 → 每次取最新 SW 版本
+# Service-Worker-Allowed: / → 允许 SW 控制 root scope
+/service-worker.js
+  Cache-Control: public, max-age=0, must-revalidate
+  Service-Worker-Allowed: /
+
+# 哈希化资源长期缓存(Vite 输出的 /assets/* 已带 hash,内容变则文件名变)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 安全头(可选但推荐)
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

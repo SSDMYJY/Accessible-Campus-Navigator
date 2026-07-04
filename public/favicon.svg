@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- favicon.svg — matches the PWA icon glyph for visual consistency in tabs. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Accessible Campus Navigator">
+  <rect width="64" height="64" rx="12" fill="#0b3d91" />
+  <path d="M32 12 C23 12 17 18 17 27 C17 38 32 52 32 52 C32 52 47 38 47 27 C47 18 41 12 32 12 Z"
+        fill="#ffd60a" stroke="#082a66" stroke-width="1.5" />
+  <circle cx="32" cy="27" r="5" fill="#0b3d91" />
+  <path d="M23 43 L41 50 L37 53 L19 46 Z" fill="#00e5ff" />
+</svg>

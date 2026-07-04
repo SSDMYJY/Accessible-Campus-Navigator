@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- icon-512.svg — same glyph as icon-192.svg at 512x512 for high-res installs. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Accessible Campus Navigator icon">
+  <rect width="512" height="512" rx="86" fill="#0b3d91" />
+  <path d="M256 96 C187 96 133 150 133 219 C133 309 256 416 256 416 C256 416 379 309 379 219 C379 150 325 96 256 96 Z"
+        fill="#ffd60a" stroke="#082a66" stroke-width="11" />
+  <circle cx="256" cy="219" r="43" fill="#0b3d91" />
+  <path d="M187 347 L347 400 L325 421 L165 368 Z" fill="#00e5ff" />
+</svg>

@@ -1,0 +1,6 @@
+{
+  "name": "accessible-campus-navigator-worker",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js"
+}

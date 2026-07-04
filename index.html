@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<!--
+  index.html — Vite entry document for the Accessible Campus Navigator PWA.
+
+  AESTHETIC DIRECTION: "Editorial Cartographer"
+  A warm, paper-and-ink cartographic aesthetic — vintage transit map meets
+  modern editorial design. Cream paper background with topographic grain,
+  deep ink navy primary, signal-rust accent, forest-green for "step-free"
+  positive indicators. Typography pairs Fraunces (display, with optical sizing
+  for that hand-drawn map-lettering feel) with Newsreader (warm body serif
+  designed for screen reading) and JetBrains Mono (for coordinate/distance
+  metadata that feels like map notation).
+
+  Accessibility (a11y) decisions baked into this file (UNCHANGED from v1):
+  1. <html lang="zh-CN"> — declares the document language so screen readers use the
+     correct pronunciation engine. Omitting `lang` is a WCAG 3.1.1 failure.
+  2. <meta name="viewport"> WITHOUT `user-scalable=no` and without a
+     `maximum-scale` cap — users with low vision MUST be allowed to pinch-zoom
+     and to scale text up to 200% (WCAG 1.4.4).
+  3. <title> is descriptive and unique (WCAG 2.4.2).
+  4. The first focusable element in <body> is the "Skip to main content" link
+     (WCAG 2.4.1 Bypass Blocks).
+  5. <meta name="theme-color"> matches the manifest theme_color.
+  6. Tailwind via play CDN; SW caches the CDN URL. PRODUCTION NOTE: replace with
+     a compiled Tailwind build for full offline + smaller payload.
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1a2332" />
+    <meta
+      name="description"
+      content="无障碍校园导航 — 在校园地点之间查找安全、无台阶的路线。一款为视障与行动不便用户设计的 PWA。"
+    />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
+    <title>无障碍校园导航 · Accessible Campus Navigator</title>
+
+    <!--
+      Typefaces — Fraunces (display, variable optical sizing), Newsreader (body
+      serif, designed for screen reading), JetBrains Mono (numerics/metadata).
+      Preconnect for faster handshake.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Cartographic palette. All component classes reference these tokens so
+      // the high-contrast overrides in a11y.css can swap them via CSS variables
+      // when the user enables High-Contrast mode.
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              paper:        '#f4ede0',  // warm cream paper
+              'paper-deep': '#ebe1cf',  // shaded paper
+              ink:          '#1a2332',  // deep navy ink (text, ~13:1 on paper)
+              'ink-soft':   '#3a4356',  // secondary ink
+              'ink-muted':  '#6b5d4f',  // warm muted (≥4.5:1 on paper)
+              rust:         '#b8412a',  // signal rust accent (CTAs)
+              'rust-deep':  '#8f2f1f',
+              forest:       '#2d5a3d',  // step-free positive
+              'forest-soft':'#4a7558',
+              hairline:     '#d4c9b5',  // decorative hairlines (not for text)
+              stamp:        '#a8332a',  // stamp/seal red
+            },
+            fontFamily: {
+              display: ['Fraunces', 'Georgia', 'serif'],
+              serif:   ['Newsreader', 'Georgia', 'serif'],
+              mono:    ['JetBrains Mono', 'ui-monospace', 'monospace'],
+            },
+            letterSpacing: {
+              tightest: '-0.04em',
+            },
+          },
+        },
+      }
+    </script>
+  </head>
+  <body>
+    <!--
+      Skip link: visually hidden until focused. Activating it (Enter) moves focus
+      to <main id="main" tabIndex="-1"> in src/App.jsx. Styling in a11y.css.
+    -->
+    <a href="#main" class="skip-link">跳转到主要内容</a>
+
+    <!-- React mount point -->
+    <div id="root"></div>
+
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

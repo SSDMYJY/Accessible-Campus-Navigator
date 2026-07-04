@@ -1,0 +1,25 @@
+# wrangler.toml — Cloudflare Workers 配置
+#
+# 部署方案:Workers Static Assets(2024 原生静态资源方案)。
+# 静态资源(HTML/JS/CSS/SVG/manifest/SW)由 Workers Runtime 直接服务,
+# 边缘 CDN 自动加速。Worker 仅作扩展占位(见 worker/src/index.js)。
+#
+# 部署命令:`npm run deploy`(等价于 vite build && wrangler deploy)
+
+name = "accessible-campus-navigator"
+compatibility_date = "2025-01-01"
+
+# Worker 入口 — 必须显式声明,否则 wrangler 会把项目当作 assets-only Worker,
+# 此时 [assets] 不允许带 binding(报错:"Cannot use assets with a binding in
+# an assets-only Worker")。保留 Worker 入口以便未来扩展 /api/* 路由。
+main = "worker/src/index.js"
+
+# 静态资源绑定:Vite 构建产物目录
+[assets]
+# 部署时此目录的内容会被上传为静态资源
+directory = "./dist"
+# SPA 模式:未匹配静态资源的路径回退到 /index.html
+# 本项目全部路由都在客户端处理,无服务端路由
+not_found_handling = "single-page-application"
+# 绑定名:Worker 可通过 env.ASSETS.fetch(request) 介入(本次不介入静态请求)
+binding = "ASSETS"
