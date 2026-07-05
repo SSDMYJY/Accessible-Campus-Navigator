@@ -17,7 +17,7 @@
  *     <ul>                                  accessibility feature badges
  *     <ol>                                  step-by-step directions (ORDERED)
  *     <p role="note">                       optional safety note
- *     actions: Select / Announce
+ *     actions: Select / Announce / Navigate
  *
  * A11Y DECISIONS — UNCHANGED
  *   - <article> (not <div>) signals a self-contained piece for AT navigation.
@@ -30,7 +30,9 @@
  *   - The decorative dashed route line and step-stamp circles are marked
  *     aria-hidden so AT only reads the step text, not "circle 1, line, circle 2".
  */
-export default function RouteCard({ route, active, onSelect, onAnnounce }) {
+import AccessibilityScore from './AccessibilityScore.jsx'
+
+export default function RouteCard({ route, active, onSelect, onAnnounce, onNavigate }) {
   const headingId = `route-heading-${route.id}`
   const listId = `route-steps-${route.id}`
 
@@ -78,6 +80,11 @@ export default function RouteCard({ route, active, onSelect, onAnnounce }) {
           <span className="text-ink-muted mx-2">·</span>
           <span className="text-ink font-500">{route.estMinutes}</span>
           <span className="text-ink-muted"> 分钟</span>
+        </p>
+
+        {/* Accessibility score — at-a-glance rating for picking among options */}
+        <p className="mt-2">
+          <AccessibilityScore route={route} />
         </p>
 
         {/* Accessibility-feature stamps */}
@@ -158,10 +165,18 @@ export default function RouteCard({ route, active, onSelect, onAnnounce }) {
         <button
           type="button"
           onClick={onAnnounce}
-          className="badge-button badge-button--primary touch-target"
+          className="badge-button touch-target"
         >
           <span aria-hidden="true">🔊</span>
           播报此路线
+        </button>
+        <button
+          type="button"
+          onClick={onNavigate}
+          className="badge-button badge-button--primary touch-target"
+        >
+          <span aria-hidden="true">➤</span>
+          开始引导导航
         </button>
       </div>
     </article>

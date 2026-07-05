@@ -23,6 +23,7 @@
 import { useState } from 'react'
 import RouteCard from './RouteCard.jsx'
 import VoiceInput from './VoiceInput.jsx'
+import RecentSearches from './RecentSearches.jsx'
 
 export default function RouteFinder({
   routes,
@@ -30,11 +31,15 @@ export default function RouteFinder({
   onSearch,
   onSelectRoute,
   onAnnounceRoute,
+  onNavigateRoute,
   activeRouteId,
   places,
   voice,
   manualOpen,
   onManualOpenChange,
+  recent,
+  onRetryRecent,
+  onClearRecent,
 }) {
   // Manual form state — only used when the user opens the collapsible fallback.
   const [origin, setOrigin] = useState('')
@@ -47,6 +52,13 @@ export default function RouteFinder({
     e.preventDefault()
     if (!origin || !destination || samePlace) return
     onSearch(origin, destination)
+  }
+
+  // Swap origin ↔ destination in the manual form — a common need when the
+  // user has just walked the route one way and now wants to come back.
+  const handleSwap = () => {
+    setOrigin(destination)
+    setDestination(origin)
   }
 
   return (
@@ -148,6 +160,22 @@ export default function RouteFinder({
             </div>
           </div>
 
+          {/* Swap origin ↔ destination — a common need after walking a route
+              one way and needing to come back. */}
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={handleSwap}
+              disabled={!origin && !destination}
+              aria-label="交换起点与终点"
+              title="交换起点与终点"
+              className="swap-button touch-target"
+            >
+              <span aria-hidden="true">⇄</span>
+              <span>交换起点与终点</span>
+            </button>
+          </div>
+
           {samePlace && (
             <p role="alert" className="mt-4 font-serif text-sm text-rust font-600 border-l-2 border-rust pl-3">
               起点和终点不能相同。
@@ -164,6 +192,17 @@ export default function RouteFinder({
           </button>
         </form>
       </details>
+
+      {/* ── Recent searches (only renders when non-empty) ──────────────── */}
+      {/*
+        Renders above the results stream so a returning user can re-run a
+        previous trip without scrolling past the empty-state placeholder.
+      */}
+      <RecentSearches
+        recent={recent}
+        onRetry={onRetryRecent}
+        onClear={onClearRecent}
+      />
 
       {/* ── Results stream ─────────────────────────────────────────────── */}
       <div
@@ -202,6 +241,7 @@ export default function RouteFinder({
               active={route.id === activeRouteId}
               onSelect={() => onSelectRoute(route)}
               onAnnounce={() => onAnnounceRoute(route)}
+              onNavigate={() => onNavigateRoute(route)}
             />
           ))
         )}

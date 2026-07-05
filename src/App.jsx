@@ -24,12 +24,16 @@
 import { useCallback, useMemo, useState } from 'react'
 import Header from './components/Header.jsx'
 import RouteFinder from './components/RouteFinder.jsx'
+import GuidedNavigator from './components/GuidedNavigator.jsx'
+import SettingsPopover from './components/SettingsPopover.jsx'
 import AriaLiveRegion from './components/AriaLiveRegion.jsx'
 import { ROUTES } from './data/routes.js'
 import { parseRouteIntent, describeParseResult } from './data/parseIntent.js'
 import { useSpeech } from './hooks/useSpeech.js'
 import { useSpeechRecognition } from './hooks/useSpeechRecognition.js'
 import { useHighContrast } from './hooks/useHighContrast.js'
+import { useRecentSearches } from './hooks/useRecentSearches.js'
+import { useVoiceSettings } from './hooks/useVoiceSettings.js'
 
 export default function App() {
   const [matchedRoutes, setMatchedRoutes] = useState([])
@@ -40,9 +44,15 @@ export default function App() {
   // manualOpen controls BOTH the <details> disclosure in RouteFinder AND the
   // visibility of the top Header. Default false = voice-first, chrome-less.
   const [manualOpen, setManualOpen] = useState(false)
+  // When set, the GuidedNavigator overlay is rendered for this route.
+  const [navigatingRouteId, setNavigatingRouteId] = useState(null)
 
-  const speech = useSpeech()
+  const { settings, update: updateVoiceSettings, reset: resetVoiceSettings } = useVoiceSettings()
+  // Pass the persisted rate/pitch into useSpeech so changes take effect on
+  // the very next utterance without needing to recreate the hook's consumers.
+  const speech = useSpeech({ rate: settings.rate, pitch: settings.pitch })
   const [highContrast, toggleHighContrast] = useHighContrast()
+  const { recent, addRecent, clearRecent } = useRecentSearches()
 
   // Unique sorted list of place names — used by the intent parser AND shown
   // in the VoiceInput "known places" hint.
@@ -74,8 +84,11 @@ export default function App() {
       setErrorMsg(`在「${origin}」与「${destination}」之间未找到无障碍路线,请尝试其他地点。`)
     } else {
       setStatusMsg(`已找到 ${results.length} 条无障碍路线,从 ${origin} 到 ${destination}。`)
+      // Persist the successful query so the user can re-run it later from
+      // the "最近搜索" rail. Only successful searches are worth remembering.
+      addRecent(origin, destination)
     }
-  }, [])
+  }, [addRecent])
 
   const handleSelectRoute = useCallback((route) => {
     setActiveRouteId(route.id)
@@ -92,6 +105,30 @@ export default function App() {
     speech.speak(text)
     setStatusMsg(`正在播报路线:从 ${route.origin} 到 ${route.destination}。`)
   }, [speech])
+
+  // Open the GuidedNavigator overlay for a route. Also marks the route as
+  // selected so the underlying ticket shows the "已选" seal while the user
+  // is navigating it.
+  const handleNavigate = useCallback((route) => {
+    setActiveRouteId(route.id)
+    setNavigatingRouteId(route.id)
+    setStatusMsg(`开始引导导航:从 ${route.origin} 到 ${route.destination}。`)
+  }, [])
+
+  const handleCloseNavigation = useCallback(() => {
+    setNavigatingRouteId(null)
+    setStatusMsg('已退出引导导航。')
+  }, [])
+
+  const navigatingRoute = useMemo(
+    () => matchedRoutes.find((r) => r.id === navigatingRouteId) || null,
+    [matchedRoutes, navigatingRouteId]
+  )
+
+  // Retry a recent search — used by the RecentSearches chip rail.
+  const handleRetryRecent = useCallback((origin, destination) => {
+    handleSearch(origin, destination)
+  }, [handleSearch])
 
   // ── Voice intent pipeline ─────────────────────────────────────────────
   // Called by useSpeechRecognition when a final transcript is available.
@@ -154,6 +191,7 @@ export default function App() {
           onSearch={handleSearch}
           onSelectRoute={handleSelectRoute}
           onAnnounceRoute={handleAnnounce}
+          onNavigateRoute={handleNavigate}
           activeRouteId={activeRouteId}
           places={places}
           manualOpen={manualOpen}
@@ -167,12 +205,15 @@ export default function App() {
             onStart: recognition.start,
             onStop: recognition.stop,
           }}
+          recent={recent}
+          onRetryRecent={handleRetryRecent}
+          onClearRecent={clearRecent}
         />
       </main>
 
       <footer className="border-t-2 border-ink bg-paper-deep/60 mt-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
-          <div className="grid sm:grid-cols-[1fr_auto_auto] gap-4 items-end">
+          <div className="grid sm:grid-cols-[1fr_auto_auto_auto] gap-4 items-end">
             <div>
               <p className="station-code">版权页 · COLOPHON</p>
               <p className="mt-2 font-serif text-ink-soft text-sm leading-relaxed max-w-prose">
@@ -206,15 +247,43 @@ export default function App() {
               <span aria-hidden="true">✎</span>
               反馈
             </a>
+
+            {/*
+              Voice settings popover — always visible in the footer so the
+              TTS rate / pitch / auto-announce defaults are reachable even
+              when the top Header is hidden on the default voice page.
+            */}
+            <SettingsPopover
+              settings={settings}
+              onUpdate={updateVoiceSettings}
+              onReset={resetVoiceSettings}
+              speech={speech}
+            />
           </div>
           <hr className="rule-cartographic decorative-only mt-6" />
           <p className="mt-4 mono text-xs text-ink-muted">
-            排版 Fraunces · Newsreader · JetBrains Mono 　·　 校样 v0.4
+            排版 Fraunces · Newsreader · JetBrains Mono 　·　 校样 v0.5
           </p>
         </div>
       </footer>
 
       <AriaLiveRegion status={statusMsg} error={errorMsg} />
+
+      {/*
+        Guided step-by-step navigation overlay.
+        Rendered only when the user has tapped "开始引导导航" on a route.
+        Implemented as a native <dialog> so it gets focus trap + ESC-to-close
+        + top-layer rendering for free. The dialog itself lives inside
+        GuidedNavigator.jsx; we just gate its rendering here.
+      */}
+      {navigatingRoute && (
+        <GuidedNavigator
+          route={navigatingRoute}
+          speech={speech}
+          onClose={handleCloseNavigation}
+          initialAutoAnnounce={settings.autoAnnounceSteps}
+        />
+      )}
     </div>
   )
 }
